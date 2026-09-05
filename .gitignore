@@ -1,0 +1,16 @@
+# Never commit device images — they are multi-GB and contain the unit's
+# IMEI, radio calibration, WiFi PSK, root password and SSH host keys.
+*.bin
+*.img
+*.sha256
+dump/
+dump_openwrt/
+backup/
+saved/
+
+# Toolchain / build junk
+edl/
+.venv/
+__pycache__/
+*.pyc
+*.log
