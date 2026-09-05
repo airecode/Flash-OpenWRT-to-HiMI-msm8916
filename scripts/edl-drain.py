@@ -18,7 +18,8 @@ find 0x01 / "<?xml" / 0x7E at the head of it, and declares the device broken.
 Fix
 ---
 Drain the bulk IN endpoint until it goes quiet, then poke it with a <nop/>. The
-loader stays resident, so no power cycle and no test points are needed.
+loader stays resident, so there is no need to power-cycle or re-enter EDL with the
+reset button.
 
 Usage
 -----

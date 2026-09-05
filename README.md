@@ -29,10 +29,17 @@ workaround below is one that actually came up.
 | | |
 |---|---|
 | ![pcb front](screenshots/03-pcb-front.jpg) | ![pcb back](screenshots/04-pcb-back-uart.jpg) |
-| PCB front: MSM8916 + SK hynix RAM/eMMC. Board revision `UF05260128V05` on the silkscreen. | PCB back: SIM slot and the UART pads — `EXT TXD`, `EXT RXD`, `GND`, `VBAT`. The label is redacted; it carries the IMEI and MAC. |
+| PCB front: MSM8916 + SK hynix RAM/eMMC, board revision `UF05260128V05` on the silkscreen. The **reset button** sits at the left-hand end — hold it while plugging in to enter EDL. | PCB back: SIM slot and the UART pads — `EXT TXD`, `EXT RXD`, `GND`, `VBAT`. The label is redacted; it carries the IMEI and MAC. |
 
 > **Redact your own photos.** The sticker on the back has the unit's IMEI and MAC
 > in plain text. Do not publish it.
+
+### The result
+
+| | |
+|---|---|
+| ![luci status](screenshots/05-luci-status.png) | ![luci memory and storage](screenshots/06-luci-memory-storage.png) |
+| OpenWrt 25.12.5 (kernel 6.12.94) running as `UF02 4G Modem Stick` on `msm89xx/msm8916`, reached over WiFi at `192.168.100.1`. | 382 MiB RAM usable, 3.25 GiB overlay on `rootfs_data`, `br-lan` connected. |
 
 ---
 
@@ -76,8 +83,9 @@ PATH="$PWD/edl/edlclient/Windows:$PATH" .venv/Scripts/python.exe -c "import usb.
 
 ### 1.4 Zadig (WinUSB driver)
 
-With the stick in EDL mode, Windows shows `QHSUSB__BULK` (USB `05C6:9008`) with no
-driver. Run **`edl/Drivers/Windows/zadig-2.8.exe`**:
+With the stick in EDL mode (see [§2](#2-get-into-edl-mode) — hold the reset button
+while plugging it in), Windows shows `QHSUSB__BULK` (USB `05C6:9008`) with no driver.
+Run **`edl/Drivers/Windows/zadig-2.8.exe`**:
 
 1. *Options → List All Devices*
 2. Select **QHSUSB__BULK** (confirm USB ID `05C6 9008`)
@@ -97,13 +105,22 @@ powershell.exe -Command "Get-PnpDevice -PresentOnly | Where-Object { \$_.Instanc
 
 The stick enters EDL (USB `05C6:9008`, `QHSUSB__BULK`) when:
 
-- its bootloader is invalid — the mask-ROM PBL falls back automatically; **or**
-- you short the **EDL test points** on the PCB while plugging it in.
+- **you hold the reset button down while plugging the stick into USB** — this is the
+  normal way in. The button is the small one on the board (visible in the PCB photo
+  above); on this model you do not need to short anything. Keep it held as you insert
+  the stick, and Windows enumerates `QHSUSB__BULK` instead of the usual modem; **or**
+- its bootloader is invalid — the mask-ROM PBL then falls back to EDL by itself.
 
 Once OpenWrt is installed and booting, the stick no longer drops into EDL on its
-own — the test points are the way back in. Because the PBL lives in mask ROM and
-secure boot is not fused on this hardware, **EDL cannot be flashed away**. That is
-the safety net behind everything below.
+own — the reset-button-while-plugging trick is the way back in. Because the PBL lives
+in mask ROM and secure boot is not fused on this hardware, **EDL cannot be flashed
+away**. That is the safety net behind everything below.
+
+Check it worked before running anything:
+
+```bash
+powershell.exe -Command "Get-PnpDevice -PresentOnly | Where-Object { \$_.InstanceId -like 'USB\VID_05C6&PID_9008*' } | Format-List FriendlyName, Status"
+```
 
 ---
 
